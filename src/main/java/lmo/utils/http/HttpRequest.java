@@ -10,7 +10,9 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
 import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.security.cert.X509Certificate;
@@ -34,22 +36,22 @@ import org.apache.log4j.Logger;
  * @munkhochir<lmo0731@gmail.com>
  */
 public class HttpRequest implements Closeable {
-    
+
     InputStream body;
     HttpURLConnection con;
     Logger logger;
     boolean secure = false;
-    
+
     static {
         try {
             TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
                 public java.security.cert.X509Certificate[] getAcceptedIssuers() {
                     return null;
                 }
-                
+
                 public void checkClientTrusted(X509Certificate[] certs, String authType) {
                 }
-                
+
                 public void checkServerTrusted(X509Certificate[] certs, String authType) {
                 }
             }};
@@ -66,24 +68,24 @@ public class HttpRequest implements Closeable {
         } catch (Exception ex) {
         }
     }
-    
+
     public HttpRequest(String method, String url, int conTimeout, int readTimeout) throws IOException {
         this(method, url);
         this.con.setReadTimeout(readTimeout);
         this.con.setConnectTimeout(conTimeout);
     }
-    
+
     public void setLogger(Logger logger) {
         this.logger = logger;
     }
-    
+
     public HttpRequest(String method, String url) throws IOException {
+        this(method, url, Proxy.NO_PROXY);
+    }
+
+    public HttpRequest(String method, String url, Proxy proxy) throws IOException {
         URL _url = new URL(url);
-        if (url.startsWith("https")) {
-            this.con = (HttpsURLConnection) _url.openConnection();
-        } else {
-            this.con = (HttpURLConnection) _url.openConnection();
-        }
+        this.con = (HttpURLConnection) _url.openConnection(proxy);
         this.con.setDoInput(true);
         this.con.setDoOutput(true);
         this.con.setInstanceFollowRedirects(false);
@@ -91,41 +93,41 @@ public class HttpRequest implements Closeable {
         this.con.setUseCaches(false);
         this.con.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
     }
-    
+
     public void setSSLSocketFactory(SSLSocketFactory sslsf) {
         if (this.con != null && this.con instanceof HttpsURLConnection) {
             ((HttpsURLConnection) this.con).setSSLSocketFactory(sslsf);
         }
     }
-    
+
     public void setHostnameVerifier(HostnameVerifier verifier) {
         if (this.con != null && this.con instanceof HttpsURLConnection) {
             ((HttpsURLConnection) this.con).setHostnameVerifier(verifier);
         }
     }
-    
+
     public void addHeader(String name, String value) {
         con.addRequestProperty(name, value);
     }
-    
+
     public void setHeader(String name, String value) {
         con.setRequestProperty(name, value);
     }
-    
+
     public void setBody(byte[] body) {
         this.body = new ByteArrayInputStream(body);
     }
-    
+
     public void setBody(InputStream in) {
         this.body = in;
     }
-    
+
     public void setJson(Object o) throws Exception {
         BSONSerializer serializer = new BSONSerializer();
         this.setBody(serializer.serialize(o).getBytes("UTF-8"));
         this.setHeader("Content-Type", "application/json;charset=UTF-8");
     }
-    
+
     public void setForm(Map<String, String> form) throws Exception {
         this.setHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
         StringBuilder sb = new StringBuilder();
@@ -139,17 +141,17 @@ public class HttpRequest implements Closeable {
         }
         this.setBody(sb.toString().getBytes("UTF-8"));
     }
-    
+
     public void setBasicAuthentication(String username, String password) {
         String auth = username + ":" + password;
         this.setHeader("Authorization",
                 "Basic " + DatatypeConverter.printBase64Binary(auth.getBytes()));
     }
-    
+
     public HttpResponse execute() throws IOException {
         return this.execute(null);
     }
-    
+
     public HttpResponse execute(final HttpListener l) throws IOException {
         if (logger != null) {
             logger.info(con.getRequestMethod() + " " + con.getURL().toString());
@@ -183,7 +185,7 @@ public class HttpRequest implements Closeable {
                 }
             }
             response.headers.putAll(this.con.getHeaderFields());
-            
+
             InputStream in;
             if (response.status >= 400) {
                 in = this.con.getErrorStream();
@@ -197,13 +199,13 @@ public class HttpRequest implements Closeable {
                 in = new DeflaterInputStream(in);
             }
             final HttpListener listener = new HttpListener() {
-                
+
                 public void onRead(int b) {
                     if (l != null) {
                         l.onRead(b);
                     }
                 }
-                
+
                 public void onClose() {
                     con.disconnect();
                     if (l != null) {
@@ -219,14 +221,14 @@ public class HttpRequest implements Closeable {
         }
         return response;
     }
-    
+
     public void close() {
         try {
             con.disconnect();
         } catch (Exception ex) {
         }
     }
-    
+
     public static void main(String args[]) throws Exception {
         BasicConfigurator.configure();
         String url = "http://web2.0calc.com/calc";
@@ -241,11 +243,11 @@ public class HttpRequest implements Closeable {
         request.setBody(body.getBytes("UTF-8"));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         HttpResponse response = request.execute(new HttpListener() {
-            
+
             public void onRead(int b) {
                 System.out.print((char) b);
             }
-            
+
             public void onClose() {
                 System.out.println();
             }
