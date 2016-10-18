@@ -92,7 +92,7 @@ public class BSONDateFactory extends AbstractTransformer implements ObjectFactor
     public void transform(Object object) {
 //        this.getContext().writeOpenObject();
 //        this.getContext().writeName("$date");
-        this.getContext().write(sdf2.format((Date) object));
+        this.getContext().writeQuoted(sdf2.format((Date) object));
 //        this.getContext().writeCloseObject();
     }
 }
