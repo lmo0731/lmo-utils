@@ -6,10 +6,11 @@
 
 package lmo.utils.bson;
 
-import lmo.utils.bson.BSONSerializer;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import junit.framework.TestCase;
+import lmo.utils.bson.BSONSerializer;
 
 /**
  *
@@ -24,7 +25,8 @@ public class BSONSerializerTest extends TestCase {
     public void testSerialize_Object() {
         Map a = new HashMap();
         a.put("a", null);
-        System.out.println(new BSONSerializer().serialize(null));
+        a.put("date", new Date());
+        System.out.println(new BSONSerializer().serialize(a));
     }
 
     

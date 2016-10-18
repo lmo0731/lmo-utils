@@ -8,6 +8,7 @@ import flexjson.JSON;
 import flexjson.JSONException;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import junit.framework.TestCase;
@@ -24,7 +25,13 @@ public class BSONDeserializerTest extends TestCase {
 
     public void testA() {
         String s = "{\"a\": {\"$date\": 123}, \"b\":123, \"c\": {\"d\": \"345\"},"
-                + "files:{$1binary: \"c2FuIGJhaW51%&&*\"}, bobj:{zaza:2}}";
+                + "files:{$1binary: \"c2FuIGJhaW51%&&*\"}, bobj:{zaza:2}, "
+                + "date1: '2017-10-18 18:58:00',"
+                + "date2: '2017-10-18T10:58:00Z',"
+                + "date3: '2017-10-18T18:58:00+08:00',"
+                + "date4: '2017-10-18T10:58:00.000Z',"
+                + "date5: '2017-10-18T18:58:00.000+08:00',"
+                + "date6: 0}";
         //s = "{\"$date\": 1230}";
         //s = "\"xoxo\"";
         System.out.println(new BSONDeserializer().deserialize(s));
@@ -83,10 +90,16 @@ public class BSONDeserializerTest extends TestCase {
         public ByteArrayInputStream files;
         @BSONNotNull
         public B bobj;
+        public Date date1;
+        public Date date2;
+        public Date date3;
+        public Date date4;
+        public Date date5;
+        public Date date6;
 
         @Override
         public String toString() {
-            return String.format("{b=%s, a=%s, d=%s, files=%s, bobj=%s}", b, a, d, files, bobj);
+            return String.format("{b=%s, a=%s, d=%s, files=%s, bobj=%s, date1=%s, date2=%s, date3=%s, date4=%s, date5=%s, date6=%s}", b, a, d, files, bobj, date1, date2, date3, date4, date5, date6);
         }
     }
 
