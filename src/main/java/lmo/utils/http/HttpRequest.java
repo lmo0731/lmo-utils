@@ -153,6 +153,16 @@ public class HttpRequest implements Closeable {
     }
 
     public HttpResponse execute(final HttpListener l) throws IOException {
+        if (logger != null) {
+            logger.info(con.getRequestMethod() + " " + con.getURL().toString());
+            for (String key : this.con.getRequestProperties().keySet()) {
+                if (!key.toLowerCase().contains("pass")
+                        && !key.toLowerCase().contains("user")
+                        && !key.toLowerCase().contains("auth")) {
+                    logger.debug(key + ": " + this.con.getRequestProperty(key));
+                }
+            }
+        }
         if (this.body != null) {
             OutputStream out = this.con.getOutputStream();
             while (true) {
@@ -164,16 +174,6 @@ public class HttpRequest implements Closeable {
             }
             out.flush();
             out.close();
-        }
-        if (logger != null) {
-            logger.info(con.getRequestMethod() + " " + con.getURL().toString());
-            for (String key : this.con.getRequestProperties().keySet()) {
-                if (!key.toLowerCase().contains("pass")
-                        && !key.toLowerCase().contains("user")
-                        && !key.toLowerCase().contains("auth")) {
-                    logger.debug(key + ": " + this.con.getRequestProperty(key));
-                }
-            }
         }
         final HttpResponse response = new HttpResponse();
         try {
