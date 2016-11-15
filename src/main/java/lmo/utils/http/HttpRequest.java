@@ -91,7 +91,6 @@ public class HttpRequest implements Closeable {
         this.con.setInstanceFollowRedirects(false);
         this.con.setRequestMethod(method);
         this.con.setUseCaches(false);
-        this.con.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
     }
 
     public void setSSLSocketFactory(SSLSocketFactory sslsf) {
@@ -154,12 +153,11 @@ public class HttpRequest implements Closeable {
 
     public HttpResponse execute(final HttpListener l) throws IOException {
         if (logger != null) {
-            logger.info(con.getRequestMethod() + " " + con.getURL().toString());
             for (String key : this.con.getRequestProperties().keySet()) {
                 if (!key.toLowerCase().contains("pass")
                         && !key.toLowerCase().contains("user")
                         && !key.toLowerCase().contains("auth")) {
-                    logger.debug(key + ": " + this.con.getRequestProperty(key));
+                    logger.debug("> " + key + ": " + this.con.getRequestProperty(key));
                 }
             }
         }
@@ -180,8 +178,12 @@ public class HttpRequest implements Closeable {
             this.con.connect();
             response.status = this.con.getResponseCode();
             if (logger != null) {
+                logger.info(con.getRequestMethod() + " " + con.getURL().toString());
+                logger.info(this.con.getHeaderField(null));
                 for (String key : this.con.getHeaderFields().keySet()) {
-                    logger.debug(key + ": " + this.con.getHeaderField(key));
+                    if (key != null) {
+                        logger.debug("< " + key + ": " + this.con.getHeaderField(key));
+                    }
                 }
             }
             response.headers.putAll(this.con.getHeaderFields());
