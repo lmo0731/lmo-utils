@@ -25,10 +25,10 @@ public class BSONDateFactory extends AbstractTransformer implements ObjectFactor
 
     @Override
     public Object instantiate(ObjectBinder context, Object value, Type targetType, Class targetClass) {
-        System.out.println("value: " + value);
-        System.out.println("valueType: " + value.getClass());
-        System.out.println("targetType: " + targetType);
-        System.out.println("targetClass: " + targetClass);
+//        System.out.println("value: " + value);
+//        System.out.println("valueType: " + value.getClass());
+//        System.out.println("targetType: " + targetType);
+//        System.out.println("targetClass: " + targetClass);
         if (targetType == null) {
             return getDate(value);
         } else {
