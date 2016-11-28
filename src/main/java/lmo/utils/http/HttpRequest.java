@@ -148,11 +148,7 @@ public class HttpRequest implements Closeable {
                 "Basic " + DatatypeConverter.printBase64Binary(auth.getBytes()));
     }
 
-    public HttpResponse execute() throws IOException {
-        return this.execute(null);
-    }
-
-    public HttpResponse execute(final HttpListener l) throws IOException {
+    public void connect() throws IOException {
         if (logger != null) {
             for (String key : this.con.getRequestProperties().keySet()) {
                 if (!key.toLowerCase().contains("pass")
@@ -162,6 +158,7 @@ public class HttpRequest implements Closeable {
                 }
             }
         }
+        this.con.connect();
         if (this.body != null) {
             OutputStream out = this.con.getOutputStream();
             while (true) {
@@ -174,12 +171,29 @@ public class HttpRequest implements Closeable {
             out.flush();
             out.close();
         }
+        if (logger != null) {
+            logger.info(con.getRequestMethod() + " " + con.getURL().toString());
+        }
+    }
+
+    public HttpResponse execute() throws IOException {
+        return this.execute(null);
+    }
+
+    public HttpResponse execute(final HttpListener l) throws IOException {
+        this.connect();
+        return this.getResponse(l);
+    }
+
+    public HttpResponse getResponse() throws IOException {
+        return getResponse(null);
+    }
+
+    public HttpResponse getResponse(final HttpListener l) throws IOException {
         final HttpResponse response = new HttpResponse();
         try {
-            this.con.connect();
             response.status = this.con.getResponseCode();
             if (logger != null) {
-                logger.info(con.getRequestMethod() + " " + con.getURL().toString());
                 logger.info(this.con.getHeaderField(null));
                 for (String key : this.con.getHeaderFields().keySet()) {
                     if (key != null) {
@@ -244,20 +258,24 @@ public class HttpRequest implements Closeable {
                 + "=" + URLEncoder.encode("1+2", "UTF-8")
                 + "&trig=rad&p=0&s=0";
         request.setBody(body.getBytes("UTF-8"));
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        HttpResponse response = request.execute(new HttpListener() {
-
-            public void onRead(int b) {
-                System.out.print((char) b);
-            }
-
-            public void onClose() {
-                System.out.println();
-            }
-        });
-        System.out.println(response.getStatusLine());
-        System.out.println(response.getFirstHeader("content-type"));
-        System.out.println("1 " + new String(response.getBody(), "UTF-8"));
-        request.close();
+//        request.connect();
+//        request.getResponse();
+//        request.close();
+        request.execute();
+//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//        HttpResponse response = request.execute(new HttpListener() {
+//
+//            public void onRead(int b) {
+//                System.out.print((char) b);
+//            }
+//
+//            public void onClose() {
+//                System.out.println();
+//            }
+//        });
+//        System.out.println(response.getStatusLine());
+//        System.out.println(response.getFirstHeader("content-type"));
+//        System.out.println("1 " + new String(response.getBody(), "UTF-8"));
+//        request.close();
     }
 }
